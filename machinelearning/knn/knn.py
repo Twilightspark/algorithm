@@ -38,9 +38,9 @@ class KNN(object):
         return label_res, times / self.k
 
 
-# if __name__ == "__main__":
-#     """测试K近邻法"""
-#     data = np.array([[1, 2, 3], [1, 2, 3], [1, 2, 4], [10, 11, 12]])
-#     label = [0, 0, 1, 1]
-#     a = KNN(2)
-#     print(a.fit_euclidean([2, 3, 4], data, label))
+if __name__ == "__main__":
+    """测试K近邻法"""
+    data = np.array([[1, 2, 3], [1, 2, 3], [1, 2, 4], [10, 11, 12]])
+    label = [0, 0, 1, 1]
+    a = KNN(2)
+    print(a.fit_euclidean([2, 3, 4], data, label))

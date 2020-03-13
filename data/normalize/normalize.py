@@ -56,11 +56,11 @@ class Normalize(object):
             line_data[i] = (line_data[i] - self.__min) / (self.__max - self.__min) * (self.max - self.min) + self.min
         return line_data
 
-# if __name__ == "__main__":
-#     """测试"""
-#     a = Normalize()
-#     d = [1, 2, 3, 4, 3, 2, 2]
-#     c = a.linear(d, (10, 12))
-#     print(c)
-#     d = a.reduce_linear(c)
-#     print(d)
+if __name__ == "__main__":
+    """测试"""
+    a = Normalize()
+    d = [1444569, 1551972, 1795280, 1716065, 1761956, 2122332, 2262601, 2839882, 3532551, 4708442]
+    c = a.linear(d, (0, 1))
+    print(c)
+    d = a.reduce_linear(c)
+    print(d)

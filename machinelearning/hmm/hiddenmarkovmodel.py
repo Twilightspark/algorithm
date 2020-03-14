@@ -7,7 +7,7 @@
 import pickle
 
 
-class HMM(object):
+class HiddenMarkovModel(object):
     def __init__(self, list_tags, path_model):
         """
         初始化模型
@@ -15,30 +15,30 @@ class HMM(object):
         :param path_model: 训练好的模型位置r'./hmm_model.pkl'
         """
         self.list_tags = list_tags
-        self.__path_model = path_model
-        self.__dic_start_transitions = dict()  # 初始化初始概率
-        self.__dic_transitions = dict()  # 初始化转移概率
-        self.__dic_emission = dict()  # 初始化发射概率
-        self.__dic_count = dict()
-        self.__set_words = None
-        self.__flag_load = False
+        self._path_model = path_model
+        self._dic_start_transitions = dict()  # 初始化初始概率
+        self._dic_transitions = dict()  # 初始化转移概率
+        self._dic_emission = dict()  # 初始化发射概率
+        self._dic_count = dict()
+        self._set_words = None
+        self._flag_load = False
 
-    def __reset_parameter(self):
+    def _reset_parameter(self):
         """初始化模型参数"""
         for tag in self.list_tags:
-            self.__dic_count[tag] = 0
-            self.__dic_transitions[tag] = {t: 0.0 for t in self.list_tags}
-            self.__dic_start_transitions[tag] = 0.0
-            self.__dic_emission[tag] = {w: 0.0 for w in self.__set_words}
+            self._dic_count[tag] = 0
+            self._dic_transitions[tag] = {t: 0.0 for t in self.list_tags}
+            self._dic_start_transitions[tag] = 0.0
+            self._dic_emission[tag] = {w: 0.0 for w in self._set_words}
 
     def load_model(self):
         """读取模型"""
-        with open(self.__path_model, 'rb') as f:
-            self.__dic_start_transitions = pickle.load(f)
-            self.__dic_transitions = pickle.load(f)
-            self.__dic_emission = pickle.load(f)
-            self.__set_words = pickle.load(f)
-            self.__flag_load = True
+        with open(self._path_model, 'rb') as f:
+            self._dic_start_transitions = pickle.load(f)
+            self._dic_transitions = pickle.load(f)
+            self._dic_emission = pickle.load(f)
+            self._set_words = pickle.load(f)
+            self._flag_load = True
 
     def train(self, list_text, list_tags):
         """
@@ -50,55 +50,55 @@ class HMM(object):
         assert len(list_text) == len(list_tags)
 
         #  初始化训练前状态
-        self.__set_words = set()  # 初始化字符集合
+        self._set_words = set()  # 初始化字符集合
         for line in list_text:
-            self.__set_words |= set(line)
-        self.__reset_parameter()
+            self._set_words |= set(line)
+        self._reset_parameter()
 
         #  读取语料库内容统计
         num_line = len(list_tags)
         for n in range(num_line):
             line_word = list_text[n]
             line_tags = list_tags[n]
-            self.__dic_start_transitions[line_tags[0]] += 1
+            self._dic_start_transitions[line_tags[0]] += 1
             for i in range(len(line_tags)):
                 tag = line_tags[i]
                 word = line_word[i]
                 if i == 0:
-                    self.__dic_start_transitions[tag] += 1
+                    self._dic_start_transitions[tag] += 1
                 else:
-                    self.__dic_transitions[line_tags[i - 1]][tag] += 1
-                self.__dic_emission[tag][word] += 1
-                self.__dic_count[tag] += 1
+                    self._dic_transitions[line_tags[i - 1]][tag] += 1
+                self._dic_emission[tag][word] += 1
+                self._dic_count[tag] += 1
         #  概率计算
-        self.__dic_start_transitions = {x: y * 1.0 / num_line for x, y in self.__dic_start_transitions.items()}
-        self.__dic_transitions = {x: {m: n * 1.0 / self.__dic_count[x] for m, n in y.items()} for x, y in
-                                  self.__dic_transitions.items()}
-        self.__dic_emission = {x: {m: n / self.__dic_count[x] for m, n in y.items()} for x, y in
-                               self.__dic_emission.items()}
+        self._dic_start_transitions = {x: y * 1.0 / num_line for x, y in self._dic_start_transitions.items()}
+        self._dic_transitions = {x: {m: n * 1.0 / self._dic_count[x] for m, n in y.items()} for x, y in
+                                 self._dic_transitions.items()}
+        self._dic_emission = {x: {m: n / self._dic_count[x] for m, n in y.items()} for x, y in
+                              self._dic_emission.items()}
 
         #  持久化保存
-        with open(self.__path_model, 'wb') as f:
-            pickle.dump(self.__dic_start_transitions, f)
-            pickle.dump(self.__dic_transitions, f)
-            pickle.dump(self.__dic_emission, f)
-            pickle.dump(self.__set_words, f)
-        self.__flag_load = True
+        with open(self._path_model, 'wb') as f:
+            pickle.dump(self._dic_start_transitions, f)
+            pickle.dump(self._dic_transitions, f)
+            pickle.dump(self._dic_emission, f)
+            pickle.dump(self._set_words, f)
+        self._flag_load = True
 
-    def __viterbi(self, text):
+    def _viterbi(self, text):
         prob_history = [dict()]
         path_history = dict()
         for tag in self.list_tags:
-            prob_history[0][tag] = self.__dic_start_transitions[tag] * self.__dic_emission[tag].get(text[0], 0)
+            prob_history[0][tag] = self._dic_start_transitions[tag] * self._dic_emission[tag].get(text[0], 0)
             path_history[tag] = [tag]
         for i in range(1, len(text)):
             prob_history.append(dict())
             path_next = dict()
-            flag_unk = text[i] not in self.__set_words
+            flag_unk = text[i] not in self._set_words
             for tag in self.list_tags:
-                prob_emission = self.__dic_emission[tag].get(text[i], 0) if not flag_unk else 1.0
+                prob_emission = self._dic_emission[tag].get(text[i], 0) if not flag_unk else 1.0
                 prob_best, tag_best = max(
-                    [(prob_history[i - 1][t] * self.__dic_transitions[t].get(tag, 0) * prob_emission, t)
+                    [(prob_history[i - 1][t] * self._dic_transitions[t].get(tag, 0) * prob_emission, t)
                      for t in self.list_tags if prob_history[i - 1][t] > 0])
                 prob_history[i][tag] = prob_best
                 path_next[tag] = path_history[tag_best] + [tag]
@@ -107,17 +107,17 @@ class HMM(object):
         return prob_best, path_history[tag_best]
 
     def predict(self, text):
-        if not self.__flag_load:
+        if not self._flag_load:
             print('预测前请先训练或读取训练好的模型！')
             return None
-        _, pos_list = self.__viterbi(text)
+        _, pos_list = self._viterbi(text)
         print(text, '\n', pos_list)
         return pos_list
 
 
 if __name__ == '__main__':
     """测试"""
-    hmm = HMM(['B', 'M', 'S'], r'./db/hmm_model.pkl')
+    hmm = HiddenMarkovModel(['B', 'M', 'S'], r'./db/hmm_model.pkl')
     # text_cut = []
     # text_train = []
     # text_label = []
